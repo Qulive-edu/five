@@ -1,0 +1,273 @@
+openapi: 3.0.3
+info:
+  title: Contacts API
+  description: REST API для управления контактами с использованием SQLite базы данных
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: http://localhost:8080
+    description: Development server
+  - url: https://your-app.onrender.com
+    description: Production server
+
+paths:
+  /:
+    get:
+      summary: Проверка работоспособности сервера
+      description: Возвращает статус работы сервера
+      responses:
+        '200':
+          description: Сервер работает
+          content:
+            text/plain:
+              example: "REST API Server is running!"
+
+  /api/contacts:
+    get:
+      summary: Получить все контакты
+      description: Возвращает список всех контактов, отсортированных по имени
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Contact'
+              example:
+                - id: 1
+                  name: "Иван Иванов"
+                  email: "ivan@example.com"
+                  mobile: "+79991234567"
+                  home: "+74951234567"
+                - id: 2
+                  name: "Петр Петров"
+                  email: "petr@example.com"
+                  mobile: "+79997654321"
+                  home: null
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      summary: Создать новый контакт
+      description: Создает новый контакт в базе данных
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactInput'
+            example:
+              name: "Мария Сидорова"
+              email: "maria@example.com"
+              mobile: "+79998887766"
+              home: "+74957654321"
+      responses:
+        '201':
+          description: Контакт успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+        '400':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Имя (name) обязательно для заполнения"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/contacts/{id}:
+    get:
+      summary: Получить контакт по ID
+      description: Возвращает контакт по указанному идентификатору
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID контакта
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+        '404':
+          description: Контакт не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Контакт не найден"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      summary: Обновить контакт по ID
+      description: Обновляет информацию о контакте по указанному идентификатору
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID контакта
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactInput'
+            example:
+              name: "Иван Иванов (обновленный)"
+              email: "ivan.new@example.com"
+              mobile: "+79999999999"
+              home: null
+      responses:
+        '200':
+          description: Контакт успешно обновлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+        '400':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Имя (name) обязательно для заполнения"
+        '404':
+          description: Контакт не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Контакт не найден"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      summary: Удалить контакт по ID
+      description: Удаляет контакт по указанному идентификатору
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID контакта
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        '204':
+          description: Контакт успешно удален
+        '404':
+          description: Контакт не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Контакт не найден"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    Contact:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Уникальный идентификатор контакта
+          example: 1
+        name:
+          type: string
+          description: Имя контакта
+          example: "Иван Иванов"
+        email:
+          type: string
+          nullable: true
+          description: Email адрес
+          example: "ivan@example.com"
+        mobile:
+          type: string
+          nullable: true
+          description: Мобильный телефон
+          example: "+79991234567"
+        home:
+          type: string
+          nullable: true
+          description: Домашний телефон
+          example: "+74951234567"
+
+    ContactInput:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Имя контакта (обязательное поле)
+          example: "Иван Иванов"
+        email:
+          type: string
+          nullable: true
+          description: Email адрес
+          example: "ivan@example.com"
+        mobile:
+          type: string
+          nullable: true
+          description: Мобильный телефон
+          example: "+79991234567"
+        home:
+          type: string
+          nullable: true
+          description: Домашний телефон
+          example: "+74951234567"
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Сообщение об ошибке
+          example: "Произошла ошибка"
+
+  responses:
+    InternalServerError:
+      description: Внутренняя ошибка сервера
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Внутренняя ошибка сервера"
+
+tags:
+  - name: Contacts
+    description: Операции с контактами
+  - name: Health
+    description: Проверка работоспособности
