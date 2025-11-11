@@ -17,7 +17,7 @@
     const db = new Database(dbPath);
     
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-    app.use('/docs', express.static('path/to/redoc-folder'));
+    app.use('/docs', express.static('./redoc'));
 
     // Создаём таблицу contacts, если она не существует
     db.exec(`
