@@ -17,7 +17,33 @@
     const db = new Database(dbPath);
     
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-    app.use('/docs', express.static('./redoc'));
+    app.get('/redoc', (req, res) => {
+    const html = `
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ReDoc</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet">
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <redoc spec-url='/api-docs'></redoc>
+    <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>
+  </body>
+</html>
+`;
+    res.setHeader('Content-Type', 'text/html');
+    res.status(200);
+    res.send(html);
+});
+
 
     // Создаём таблицу contacts, если она не существует
     db.exec(`
